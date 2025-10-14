@@ -288,8 +288,8 @@ ORDER BY distance_meters ASC;
 - 🚀 **Scripts CI/CD** para builds y deployments
 
 ### Para Ciudadanos
-- ✅ Visualizar puntos de acopio en mapa interactivo con Mapbox
-- ✅ Encontrar el punto más cercano con cálculo Haversine
+- ✅ Visualizar puntos de acopio en mapa interactivo con React Native Maps
+- ✅ Encontrar el punto más cercano con algoritmo PostGIS ST_Distance
 - ✅ Reportar problemas con fotos desde cámara o galería
 - ✅ Tipos de reporte: Acumulación, Contenedor lleno, Calle sucia, Reciclaje
 - ✅ Severidad configurable: Baja, Media, Alta, Crítica
@@ -323,30 +323,31 @@ ORDER BY distance_meters ASC;
 
 ## 🔧 Comandos Útiles
 
-### Docker
-```bash
-# Iniciar todos los servicios
-docker-compose up -d
-
-# Ver logs
-docker-compose logs -f backend
-
-# Detener servicios
-docker-compose down
-
-# Detener y eliminar volúmenes
-docker-compose down -v
-
-# Reconstruir servicios
-docker-compose up -d --build
-```
-
 ### Backend
 ```bash
-# Modo desarrollo
-npm run dev
+# Iniciar servidor
+cd backend && npm start
 
-# Producción
+# Modo desarrollo (requiere nodemon)
+cd backend && npm run dev
+
+# Poblar base de datos
+cd backend && node seeders/seed-collection-points.js
+```
+
+### Aplicación Móvil
+```bash
+# Iniciar Expo
+npx expo start
+
+# Ejecutar en Android
+npx expo run:android
+
+# Ejecutar en iOS  
+npx expo run:ios
+
+# Ejecutar tests
+npm test
 ## 📝 Conclusiones y Resultados
 
 ### **Logros Alcanzados** ✅
@@ -486,12 +487,6 @@ APP/
 │
 ├── build-scripts/           # Scripts CI/CD
 │   ├── build-android.ps1
-│   ├── build-ios.ps1
-│   ├── deploy-preview.ps1
-│   ├── run-tests.ps1
-│   └── check-quality.ps1
-│
-├── docker-compose.yml       # Configuración Docker
 ├── babel.config.js          # Configuración Babel
 ├── metro.config.js          # Configuración Metro
 ├── jest.config.js           # Configuración Jest
