@@ -1,12 +1,11 @@
 # 🌱 Latacunga Clean - Sistema de Gestión de Residuos Sólidos
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/latacunga-clean)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![React Native](https://img.shields.io/badge/React%20Native-0.73-61DAFB.svg)](https://reactnative.dev/)
-[![Expo](https://img.shields.io/badge/Expo-50.0-000020.svg)](https://expo.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-20-339933.svg)](https://nodejs.org/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.74-61DAFB.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-54-000020.svg)](https://expo.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-22-339933.svg)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-336791.svg)](https://postgresql.org/)
 
-Aplicación móvil empresarial y sistema backend para la gestión inteligente de residuos sólidos en el cantón Latacunga, provincia de Cotopaxi, Ecuador.
+Sistema completo para la gestión inteligente de residuos sólidos en Latacunga, Ecuador. Incluye aplicación móvil React Native y backend Node.js con geolocalización avanzada.
 
 ## 📋 Descripción del Proyecto
 
