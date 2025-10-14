@@ -211,14 +211,14 @@ export default function MapScreen({ navigation }) {
     switch (typeNormalized) {
       case 'centro_de_acopio':
       case 'centro_acopio':
-        return 'green'; // Verde para centros de acopio
+        return '#007BFF'; //  para centros de acopio
       case 'contenedor':
-        return 'blue'; // Azul para contenedores
+        return '#8A2BE2'; //  para contenedores
       case 'centro_de_reciclaje':
       case 'reciclaje':
-        return 'orange'; // Naranja para centros de reciclaje
+        return '#00c742ff'; //  para centros de reciclaje
       default:
-        return 'red'; // Rojo por defecto
+        return '#6c757d'; //  por defecto
     }
   }, []);
 
