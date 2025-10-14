@@ -170,11 +170,11 @@ ORDER BY distance ASC;
 
 ### **Prerrequisitos**
 - Node.js 18+
-- PostgreSQL 14+ con PostGIS
+- Docker Desktop
 - Expo CLI (`npm install -g @expo/cli`)
 - Git
 
-### **Instalación Rápida**
+### **Instalación con Docker (Recomendado)**
 
 1. **Clonar repositorio**
 ```bash
@@ -182,7 +182,23 @@ git clone https://github.com/Branelio/latacunga-clean.git
 cd latacunga-clean
 ```
 
-2. **Configurar base de datos**
+2. **Iniciar servicios con Docker**
+```bash
+docker-compose up -d
+```
+
+3. **Poblar base de datos**
+```bash
+# Esperar a que los containers estén listos (30 segundos)
+cd backend
+node seeders/seed-collection-points.js
+```
+
+### **Instalación Manual (Alternativa)**
+
+Si prefieres no usar Docker:
+
+1. **Instalar PostgreSQL + PostGIS**
 ```bash
 # Crear base de datos
 createdb latacunga_clean
@@ -323,13 +339,28 @@ ORDER BY distance_meters ASC;
 
 ## 🔧 Comandos Útiles
 
+### Docker
+```bash
+# Iniciar todos los servicios
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Detener servicios
+docker-compose down
+
+# Reconstruir servicios
+docker-compose up -d --build
+
+# Ver estado de contenedores
+docker-compose ps
+```
+
 ### Backend
 ```bash
-# Iniciar servidor
+# Iniciar servidor (sin Docker)
 cd backend && npm start
-
-# Modo desarrollo (requiere nodemon)
-cd backend && npm run dev
 
 # Poblar base de datos
 cd backend && node seeders/seed-collection-points.js
@@ -348,6 +379,30 @@ npx expo run:ios
 
 # Ejecutar tests
 npm test
+```
+
+## 🌐 Interfaces de Administración
+
+Cuando ejecutas `docker-compose up -d`, también se inician interfaces web para administrar las bases de datos:
+
+### **Adminer (PostgreSQL/PostGIS)**
+- **URL**: http://localhost:8080
+- **Sistema**: PostgreSQL  
+- **Servidor**: postgis
+- **Usuario**: postgres
+- **Contraseña**: latacunga2024
+- **Base de datos**: latacunga_clean
+
+### **Mongo Express (MongoDB)**
+- **URL**: http://localhost:8081
+- **Usuario**: admin
+- **Contraseña**: latacunga2024
+
+### **Backend API**
+- **URL**: http://localhost:3000
+- **Health Check**: http://localhost:3000/api/health
+- **Endpoints**: Ver sección API Endpoints más abajo
+
 ## 📝 Conclusiones y Resultados
 
 ### **Logros Alcanzados** ✅

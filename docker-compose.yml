@@ -1,0 +1,61 @@
+﻿version: '3.8'
+
+services:
+  # PostgreSQL con PostGIS para datos geoespaciales
+  postgis:
+    image: postgis/postgis:14-3.3
+    container_name: latacunga-postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: latacunga_clean
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: latacunga2024
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database:/docker-entrypoint-initdb.d
+    networks:
+      - latacunga-network
+
+  # MongoDB para usuarios y reportes
+  mongodb:
+    image: mongo:7.0
+    container_name: latacunga-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: latacunga2024
+      MONGO_INITDB_DATABASE: latacunga_clean
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - latacunga-network
+
+  # Redis para caché y sesiones
+  redis:
+    image: redis:7-alpine
+    container_name: latacunga-redis
+    restart: unless-stopped
+    command: redis-server --requirepass latacunga2024
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - latacunga-network
+
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  latacunga-network:
+    driver: bridge
