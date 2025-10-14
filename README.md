@@ -83,19 +83,29 @@ React Native 0.74 + Expo 54
 
 ### **Backend (API REST)**
 ```
-Node.js + Express.js
+Node.js + Express.js + Docker
 ├── PostgreSQL + PostGIS (Datos Geográficos)
 ├── MongoDB (Usuarios y Reportes) 
-├── Redis (Caché)
+├── Redis (Caché y Sesiones)
 ├── JWT (Autenticación)
+├── Adminer (Admin PostgreSQL)
+├── Mongo Express (Admin MongoDB)
 └── Middleware personalizado
 ```
+
+### **Infraestructura Docker**
+- **docker-compose.yml** - Orquestación completa de servicios
+- **Dockerfile** - Container optimizado para Node.js
+- **Volúmenes persistentes** - Datos seguros entre reinicios
+- **Health checks** - Monitoreo automático de servicios
+- **Red aislada** - Comunicación segura entre containers
 
 ### **Base de Datos Geográfica**
 - **PostGIS Extension** para consultas espaciales
 - **ST_Distance()** para cálculo de proximidad
 - **Índices espaciales** para optimización de consultas
 - **10 puntos reales** georeferenciados de Latacunga
+- **Inicialización automática** con scripts SQL
 
 ## 🔬 Metodología de Investigación
 
@@ -484,12 +494,15 @@ Cuando ejecutas `docker-compose up -d`, también se inician interfaces web para 
 ```
 APP/
 ├── backend/                  # Backend API Node.js
-│   ├── config/              # Configuraciones (DB, Redis)
+│   ├── config/              # Configuraciones (DB, Redis, MongoDB)
 │   ├── controllers/         # Controladores de la API
 │   ├── models/              # Modelos de datos
 │   ├── routes/              # Rutas de la API
 │   ├── middleware/          # Middleware (auth, upload)
+│   ├── database/            # Scripts inicialización PostgreSQL
 │   ├── seeders/             # Scripts de seeding
+│   ├── Dockerfile           # Container backend
+│   ├── .dockerignore        # Exclusiones Docker
 │   └── server.js            # Entry point
 │
 ├── src/                     # Frontend React Native
@@ -540,11 +553,11 @@ APP/
 │   ├── __tests__/           # Tests
 │   └── App.js               # Entry point
 │
-├── build-scripts/           # Scripts CI/CD
-│   ├── build-android.ps1
+├── docker-compose.yml       # Orquestación Docker
 ├── babel.config.js          # Configuración Babel
 ├── metro.config.js          # Configuración Metro
 ├── jest.config.js           # Configuración Jest
+├── package.json             # Dependencias frontend
 └── README.md                # Este archivo
 ```
 
@@ -641,6 +654,38 @@ npm run deploy:preview
 - [ ] Integración con IoT (sensores en contenedores)
 - [ ] Modo oscuro (Dark Mode)
 - [ ] Soporte multiidioma (i18n)
+
+## 🛠️ Stack Tecnológico Completo
+
+### **Frontend Móvil**
+- **React Native** 0.74 - Framework multiplataforma
+- **Expo** 54 - Plataforma de desarrollo
+- **React Native Maps** - Mapas y geolocalización
+- **Redux Toolkit** - Gestión de estado
+- **React Navigation** 6 - Navegación
+- **Jest** + React Native Testing Library - Testing
+
+### **Backend & APIs**  
+- **Node.js** 18 + Express.js - Servidor API REST
+- **JWT** - Autenticación segura
+- **Multer** - Upload de archivos/imágenes
+- **CORS** - Políticas de origen cruzado
+
+### **Bases de Datos & Geoespacial**
+- **PostgreSQL** 14 + PostGIS 3.3 - Datos geográficos
+- **MongoDB** 7.0 - Usuarios y reportes
+- **Redis** 7 - Caché y sesiones
+
+### **DevOps & Containers**
+- **Docker** + Docker Compose - Containerización
+- **Adminer** - Administración PostgreSQL
+- **Mongo Express** - Administración MongoDB
+- **Health Checks** - Monitoreo de servicios
+
+### **Algoritmos & Performance**
+- **PostGIS ST_Distance** - Cálculo de proximidad geográfica
+- **Índices espaciales** - Optimización de consultas
+- **Caché Redis** - Mejora de rendimiento API
 
 ## 🤝 Contribución
 
