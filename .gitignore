@@ -64,6 +64,14 @@ coverage/
 # Production
 build/
 
+# Builds - APKs y AABs (muy pesados para Git)
+builds/android/**/*.apk
+builds/android/**/*.aab
+builds/android/**/*.ipa
+*.apk
+*.aab
+*.ipa
+
 # Docker
 .dockerignore
 
