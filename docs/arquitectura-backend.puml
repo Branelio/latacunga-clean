@@ -1,0 +1,233 @@
+@startuml API Backend - Rutas y Controladores
+!theme aws-orange
+
+title Arquitectura Backend API - Latacunga Clean
+
+package "Express Server" {
+    
+    package "Middleware Stack" {
+        rectangle "helmet()" as helmet
+        rectangle "cors()" as cors
+        rectangle "morgan()" as morgan
+        rectangle "compression()" as compression
+        rectangle "rateLimit()" as rateLimit
+        rectangle "express.json()" as json
+    }
+    
+    package "Custom Middleware" {
+        rectangle "protect" as auth_middleware
+        rectangle "authorize" as role_middleware
+        rectangle "upload" as upload_middleware
+    }
+    
+    package "Rutas API" {
+        package "/api/auth" {
+            rectangle "POST /register" as register
+            rectangle "POST /login" as login
+            rectangle "GET /me" as me
+            rectangle "PUT /update-profile" as update_profile
+            rectangle "PUT /change-password" as change_password
+        }
+        
+        package "/api/collection-points" {
+            rectangle "GET /" as get_points
+            rectangle "GET /sorted-by-distance" as sorted_points
+            rectangle "GET /nearest" as nearest_point
+            rectangle "GET /nearby" as nearby_points
+            rectangle "GET /:id" as get_point_by_id
+            rectangle "POST /" as create_point
+            rectangle "PUT /:id" as update_point
+            rectangle "DELETE /:id" as delete_point
+        }
+        
+        package "/api/reports" {
+            rectangle "GET /" as get_reports
+            rectangle "GET /my-reports" as my_reports
+            rectangle "GET /user" as user_reports
+            rectangle "GET /nearby" as nearby_reports
+            rectangle "GET /:id" as get_report_by_id
+            rectangle "POST /" as create_report
+            rectangle "PUT /:id" as update_report
+            rectangle "DELETE /:id" as delete_report
+        }
+        
+        package "/api/users" {
+            rectangle "GET /leaderboard" as leaderboard
+            rectangle "GET /profile/:id" as user_profile
+            rectangle "GET /stats" as user_stats
+        }
+        
+        package "/api/stats" {
+            rectangle "GET /overview" as stats_overview
+            rectangle "GET /reports" as reports_stats
+            rectangle "GET /users" as users_stats
+        }
+    }
+    
+    package "Controladores" {
+        rectangle "authController" as auth_controller {
+            + register()
+            + login()
+            + getMe()
+            + updateProfile()
+            + changePassword()
+        }
+        
+        rectangle "collectionPointController" as collection_controller {
+            + getAllPoints()
+            + getPointsSortedByDistance()
+            + getNearestPoint()
+            + getNearbyPoints()
+            + getPointById()
+            + createPoint()
+            + updatePoint()
+            + deletePoint()
+        }
+        
+        rectangle "reportController" as report_controller {
+            + getAllReports()
+            + getUserReports()
+            + getNearbyReports()
+            + getReportById()
+            + createReport()
+            + updateReport()
+            + deleteReport()
+        }
+        
+        rectangle "userController" as user_controller {
+            + getLeaderboard()
+            + getUserProfile()
+            + getUserStats()
+        }
+        
+        rectangle "statsController" as stats_controller {
+            + getOverview()
+            + getReportsStats()
+            + getUsersStats()
+        }
+    }
+    
+    package "Configuraciones" {
+        database "PostgreSQL Config" as postgres_config {
+            + connectPostgres()
+            + query()
+            + getClient()
+            + pool
+        }
+        
+        database "MongoDB Config" as mongodb_config {
+            + connectMongoDB()
+            + mongoose connection
+        }
+        
+        database "Redis Config" as redis_config {
+            + connectRedis()
+            + getCache()
+            + setCache()
+        }
+    }
+    
+    package "Modelos" {
+        rectangle "User Model" as user_model {
+            + name: String
+            + email: String
+            + password: String
+            + role: String
+            + points: Number
+            + level: Number
+            + isActive: Boolean
+        }
+        
+        rectangle "Report Model" as report_model {
+            + title: String
+            + description: String
+            + location: GeoJSON
+            + images: [String]
+            + type: String
+            + severity: String
+            + status: String
+            + user: ObjectId
+        }
+    }
+}
+
+' Flujo de middleware
+helmet --> cors
+cors --> morgan
+morgan --> compression
+compression --> rateLimit
+rateLimit --> json
+
+' Rutas a controladores
+register --> auth_controller
+login --> auth_controller
+me --> auth_controller
+update_profile --> auth_controller
+change_password --> auth_controller
+
+get_points --> collection_controller
+sorted_points --> collection_controller
+nearest_point --> collection_controller# Desde la carpeta backend
+node seeders/seed-collection-points.js
+nearby_points --> collection_controller
+get_point_by_id --> collection_controller
+create_point --> collection_controller
+update_point --> collection_controller
+delete_point --> collection_controller
+
+get_reports --> report_controller
+my_reports --> report_controller
+user_reports --> report_controller
+nearby_reports --> report_controller
+get_report_by_id --> report_controller
+create_report --> report_controller
+update_report --> report_controller
+delete_report --> report_controller
+
+leaderboard --> user_controller
+user_profile --> user_controller
+user_stats --> user_controller
+
+stats_overview --> stats_controller
+reports_stats --> stats_controller
+users_stats --> stats_controller
+
+' Controladores a configuraciones
+auth_controller --> mongodb_config
+collection_controller --> postgres_config
+collection_controller --> redis_config
+report_controller --> mongodb_config
+user_controller --> mongodb_config
+stats_controller --> mongodb_config
+stats_controller --> postgres_config
+
+' Modelos
+user_controller --> user_model
+auth_controller --> user_model
+report_controller --> report_model
+stats_controller --> user_model
+stats_controller --> report_model
+
+' Middleware en rutas protegidas
+auth_middleware --> me
+auth_middleware --> update_profile
+auth_middleware --> change_password
+auth_middleware --> my_reports
+auth_middleware --> user_reports
+auth_middleware --> create_report
+auth_middleware --> user_stats
+
+role_middleware --> create_point
+role_middleware --> update_point
+role_middleware --> delete_point
+role_middleware --> stats_overview
+role_middleware --> reports_stats
+role_middleware --> users_stats
+
+upload_middleware --> create_report
+
+note bottom of postgres_config : "Conexión pool\nConsultas geoespaciales\nST_Distance algorithm"
+note bottom of mongodb_config : "Mongoose ODM\nUsuarios y reportes\nGameficación"
+note bottom of redis_config : "Caché consultas\nSesiones temporales\nRate limiting data"
+
+@enduml

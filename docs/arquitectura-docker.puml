@@ -1,0 +1,116 @@
+@startuml Arquitectura Docker - Latacunga Clean
+!theme aws-orange
+
+title Infraestructura Docker - Sistema Latacunga Clean
+
+!define DOCKER_COLOR #2496ED
+!define NETWORK_COLOR #FF6B35
+!define VOLUME_COLOR #4CAF50
+
+package "Docker Environment" <<Cloud>> {
+    
+    package "latacunga-network" <<Network>> NETWORK_COLOR {
+        
+        frame "PostgreSQL Container" as postgis_container {
+            database "PostgreSQL 14\n+ PostGIS 3.3" as postgis {
+                [Base de Datos Geoespacial]
+                [10 Puntos de Recolección]
+                [Algoritmo ST_Distance]
+                note bottom : Puerto: 5432\nCredenciales: postgres/latacunga2024
+            }
+        }
+        
+        frame "MongoDB Container" as mongo_container {
+            database "MongoDB 7.0" as mongodb {
+                [Usuarios]
+                [Reportes]
+                [Comentarios]
+                [Gamificación]
+                note bottom : Puerto: 27017\nCredenciales: admin/latacunga2024
+            }
+        }
+        
+        frame "Redis Container" as redis_container {
+            database "Redis 7 Alpine" as redis {
+                [Caché de Consultas]
+                [Sesiones JWT]
+                [Rate Limiting]
+                note bottom : Puerto: 6379\nPassword: latacunga2024
+            }
+        }
+        
+        frame "Admin Tools" as admin_tools {
+            rectangle "Adminer" as adminer {
+                note bottom : Puerto: 8080\nAdministra PostgreSQL
+            }
+            
+            rectangle "Mongo Express" as mongo_express {
+                note bottom : Puerto: 8081\nAdministra MongoDB
+            }
+        }
+        
+        frame "Backend Container" as backend_container {
+            rectangle "Node.js API" as backend {
+                [Express Server]
+                [JWT Auth]
+                [File Upload]
+                [Rate Limiting]
+                note bottom : Puerto: 3000\nHealth Check: /api/health
+            }
+        }
+    }
+    
+    frame "Persistent Volumes" VOLUME_COLOR {
+        storage "postgres_data" as pg_vol
+        storage "mongodb_data" as mongo_vol
+        storage "redis_data" as redis_vol
+    }
+    
+    frame "Initialization Scripts" {
+        file "database/init.sql" as init_scripts
+        file "seeders/seed.js" as seeders
+    }
+}
+
+frame "External Access" {
+    actor "Desarrollador" as dev
+    actor "Usuario Móvil" as mobile_user
+    actor "Administrador" as admin_user
+}
+
+' Conexiones de red
+postgis_container -[#NETWORK_COLOR]-> latacunga-network
+mongo_container -[#NETWORK_COLOR]-> latacunga-network
+redis_container -[#NETWORK_COLOR]-> latacunga-network
+admin_tools -[#NETWORK_COLOR]-> latacunga-network
+backend_container -[#NETWORK_COLOR]-> latacunga-network
+
+' Conexiones de volúmenes
+postgis --> pg_vol : "Monta"
+mongodb --> mongo_vol : "Monta"
+redis --> redis_vol : "Monta"
+
+' Inicialización
+init_scripts --> postgis : "Inicializa esquemas"
+seeders --> mongodb : "Datos de prueba"
+
+' Conexiones internas
+backend --> postgis : "Consultas geoespaciales"
+backend --> mongodb : "CRUD usuarios/reportes"
+backend --> redis : "Caché y sesiones"
+adminer --> postgis : "Administración"
+mongo_express --> mongodb : "Administración"
+
+' Acceso externo
+dev --> adminer : "localhost:8080"
+dev --> mongo_express : "localhost:8081"
+mobile_user --> backend : "API REST\nlocalhost:3000"
+admin_user --> backend : "Admin endpoints"
+
+' Comandos Docker
+note bottom of postgis_container : "docker-compose up -d\nAuto health checks\nRestart policy: unless-stopped"
+
+' Configuración de red
+note top of latacunga-network : "Red interna Docker\nAislamiento de servicios\nComunicación entre contenedores"
+
+@enduml

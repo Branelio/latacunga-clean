@@ -1,0 +1,191 @@
+@startuml Frontend React Native - Arquitectura
+!theme aws-orange
+
+title Arquitectura Frontend - Aplicación React Native
+
+package "React Native App (Expo 54)" {
+    
+    package "Navegación" {
+        rectangle "React Navigation 6" as navigation {
+            + Stack Navigator
+            + Tab Navigator
+            + Drawer Navigator
+        }
+        
+        rectangle "Pantallas Principales" as screens {
+            + SplashScreen
+            + LoginScreen
+            + RegisterScreen
+            + MapScreen
+            + ProfileScreen
+            + ReportScreen
+            + ReportsListScreen
+            + CollectionPointDetailScreen
+            + EducationScreen
+        }
+    }
+    
+    package "Estado Global" {
+        rectangle "Redux Toolkit" as redux {
+            + Store
+            + Slices
+            + Actions
+            + Reducers
+        }
+        
+        rectangle "Slices de Estado" as slices {
+            + authSlice
+            + mapSlice
+            + reportSlice
+            + userSlice
+        }
+    }
+    
+    package "Componentes Reutilizables" {
+        rectangle "UI Components" as ui_components {
+            + LoadingSpinner
+            + ErrorBoundary
+            + CustomButton
+            + InputField
+            + Modal
+            + Card
+        }
+        
+        rectangle "Map Components" as map_components {
+            + MapView
+            + Marker
+            + Callout
+            + PointsListModal
+            + LocationButton
+        }
+    }
+    
+    package "Servicios" {
+        rectangle "API Service" as api_service {
+            + apiClient
+            + authAPI
+            + collectionPointsAPI
+            + reportsAPI
+            + usersAPI
+        }
+        
+        rectangle "Location Service" as location_service {
+            + getCurrentLocation()
+            + watchPosition()
+            + calculateDistance()
+            + requestPermissions()
+        }
+        
+        rectangle "Storage Service" as storage_service {
+            + AsyncStorage
+            + SecureStore
+            + Token management
+        }
+    }
+    
+    package "Configuración" {
+        rectangle "Constants" as constants {
+            + API_URL
+            + COLORS
+            + FONTS
+            + DIMENSIONS
+        }
+        
+        rectangle "Utils" as utils {
+            + formatters
+            + validators
+            + helpers
+        }
+    }
+    
+    package "Hooks Personalizados" {
+        rectangle "Custom Hooks" as hooks {
+            + useAuth()
+            + useLocation()
+            + useAPI()
+            + usePermissions()
+        }
+    }
+    
+    package "Bibliotecas Externas" {
+        rectangle "React Native Maps" as maps {
+            + MapView
+            + Marker
+            + Polyline
+            + Geolocation
+        }
+        
+        rectangle "Expo Location" as expo_location {
+            + getCurrentPositionAsync()
+            + watchPositionAsync()
+            + reverseGeocodeAsync()
+        }
+        
+        rectangle "Expo Image Picker" as image_picker {
+            + launchImageLibraryAsync()
+            + launchCameraAsync()
+        }
+        
+        rectangle "React Native Elements" as rn_elements {
+            + Button
+            + Input
+            + Card
+            + Avatar
+        }
+    }
+}
+
+package "Flujo de Datos" {
+    rectangle "Usuario Interactúa" as user_interaction
+    rectangle "Componente Dispatcha Acción" as dispatch_action
+    rectangle "API Call" as api_call
+    rectangle "Estado Actualizado" as state_update
+    rectangle "UI Re-renderiza" as ui_rerender
+}
+
+' Relaciones principales
+navigation --> screens
+screens --> ui_components
+screens --> map_components
+screens --> redux
+
+redux --> slices
+redux --> api_service
+
+api_service --> constants
+location_service --> expo_location
+map_components --> maps
+
+screens --> hooks
+hooks --> redux
+hooks --> api_service
+hooks --> location_service
+hooks --> storage_service
+
+api_service --> storage_service
+
+map_components --> expo_location
+ui_components --> rn_elements
+screens --> image_picker
+
+' Flujo de datos
+user_interaction --> dispatch_action
+dispatch_action --> api_call
+api_call --> state_update
+state_update --> ui_rerender
+
+' Pantallas específicas
+note top of screens : "MapScreen: Componente principal\ncon geolocalización y mapa\nReportScreen: Creación de reportes\ncon imágenes y ubicación"
+
+note right of redux : "Estado centralizado:\n- Usuario autenticado\n- Puntos de recolección\n- Reportes activos\n- Configuración de mapa"
+
+note right of api_service : "Comunicación con Backend:\n- Autenticación JWT\n- CRUD operaciones\n- Upload de imágenes\n- Consultas geoespaciales"
+
+note bottom of location_service : "Servicios de ubicación:\n- GPS en tiempo real\n- Permisos de ubicación\n- Cálculo de distancias\n- Geofencing"
+
+note top of maps : "React Native Maps:\n- Mapa interactivo\n- Marcadores personalizados\n- Rutas y direcciones\n- Eventos de mapa"
+
+' Configuración específica
+note bottom of constants : "Configuración:\nAPI_URL: http://192.168.0.147:3000/api\nColores del tema\nDimensiones responsive"
+
+@enduml

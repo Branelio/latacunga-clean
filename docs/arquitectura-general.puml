@@ -1,0 +1,64 @@
+@startuml Arquitectura General - Sistema Latacunga Clean
+
+!include <C4/C4_Container>
+
+title Arquitectura General del Sistema de Geolocalización de Residuos - Latacunga
+
+LAYOUT_WITH_LEGEND()
+
+Person(usuario, "Usuario Ciudadano", "Residente de Latacunga que reporta residuos")
+Person(admin, "Administrador EPAGAL", "Personal de EPAGAL que gestiona el sistema")
+Person(recolector, "Personal Recolección", "Equipo de recolección de residuos")
+
+System_Boundary(mobile, "Aplicación Móvil") {
+    Container(app, "React Native App", "React Native 0.74 + Expo 54", "Aplicación móvil para ciudadanos")
+}
+
+System_Boundary(backend, "Backend API") {
+    Container(api, "API REST", "Node.js + Express", "API principal del sistema")
+    Container(auth, "Autenticación", "JWT", "Sistema de autenticación y autorización")
+    Container(upload, "Upload Service", "Multer", "Servicio de carga de imágenes")
+}
+
+System_Boundary(databases, "Bases de Datos") {
+    ContainerDb(postgres, "PostgreSQL + PostGIS", "PostgreSQL 14 + PostGIS 3.3", "Datos geoespaciales y puntos de recolección")
+    ContainerDb(mongodb, "MongoDB", "MongoDB 7.0", "Usuarios, reportes y comentarios")
+    ContainerDb(redis, "Redis", "Redis 7", "Caché y sesiones temporales")
+}
+
+System_Boundary(admin_tools, "Herramientas de Administración") {
+    Container(adminer, "Adminer", "Web UI", "Administración PostgreSQL")
+    Container(mongo_express, "Mongo Express", "Web UI", "Administración MongoDB")
+}
+
+System_Boundary(external, "Servicios Externos") {
+    Container(maps, "Mapas", "React Native Maps", "Servicios de mapas y geolocalización")
+    Container(gps, "GPS", "Expo Location", "Servicios de ubicación")
+}
+
+' Relaciones principales
+usuario --> app : "Usa aplicación móvil"
+admin --> adminer : "Administra datos geoespaciales"
+admin --> mongo_express : "Gestiona usuarios y reportes"
+recolector --> app : "Actualiza estado de recolección"
+
+app --> api : "HTTP/HTTPS REST API"
+app --> maps : "Muestra mapas"
+app --> gps : "Obtiene ubicación"
+
+api --> auth : "Valida tokens JWT"
+api --> upload : "Sube imágenes"
+api --> postgres : "Consultas geoespaciales"
+api --> mongodb : "Datos de usuarios y reportes"
+api --> redis : "Caché y sesiones"
+
+adminer --> postgres : "Administra BD geoespacial"
+mongo_express --> mongodb : "Administra BD de usuarios"
+
+' Notas técnicas
+note right of postgres : "ST_Distance() para\ncálculo de proximidad\n10 puntos reales de Latacunga"
+note right of mongodb : "Usuarios, reportes,\ncomentarios y gamificación"
+note right of redis : "Caché de consultas\ny gestión de sesiones"
+note bottom of api : "Rate limiting\nCORS habilitado\nMiddleware de seguridad"
+
+@enduml

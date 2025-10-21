@@ -1,0 +1,158 @@
+@startuml Flujo de Datos - Casos de Uso Principales
+
+
+title Diagramas de Flujo - Casos de Uso del Sistema
+
+package "Caso de Uso 1: Encontrar Punto de Recolección Más Cercano" {
+    
+    actor Usuario as user1
+    participant "MapScreen" as map1
+    participant "Location Service" as loc1
+    participant "Redux Store" as store1
+    participant "API Service" as api1
+    participant "Backend API" as backend1
+    participant "PostGIS" as postgis1
+    participant "Redis Cache" as redis1
+    
+    user1 -> map1 : Abre mapa
+    map1 -> loc1 : Solicita ubicación actual
+    loc1 -> map1 : Coordenadas GPS
+    
+    map1 -> store1 : Dispatch(findNearest)
+    store1 -> api1 : GET /collection-points/sorted-by-distance
+    api1 -> backend1 : HTTP Request con lat/lng
+    
+    alt Cache Hit
+        backend1 -> redis1 : Busca en caché
+        redis1 -> backend1 : Datos cacheados
+    else Cache Miss
+        backend1 -> postgis1 : ST_Distance query
+        postgis1 -> backend1 : Puntos ordenados por distancia
+        backend1 -> redis1 : Guarda en caché (TTL: 15min)
+    end
+    
+    backend1 -> api1 : JSON con puntos ordenados
+    api1 -> store1 : Actualiza estado
+    store1 -> map1 : Re-render con marcadores
+    map1 -> user1 : Muestra puntos en mapa
+    
+    note right of postgis1 : "Consulta PostGIS:\nSELECT *, ST_Distance(location, \nST_SetSRID(ST_MakePoint(lng, lat), 4326)) \nas distance\nORDER BY distance ASC"
+}
+
+package "Caso de Uso 2: Crear Reporte de Residuo" {
+    
+    actor Usuario as user2
+    participant "ReportScreen" as report2
+    participant "Image Picker" as img2
+    participant "Location Service" as loc2
+    participant "Upload Service" as upload2
+    participant "MongoDB" as mongo2
+    
+    user2 -> report2 : Toca "Crear Reporte"
+    report2 -> img2 : Solicita imagen
+    img2 -> report2 : Imagen seleccionada
+    
+    report2 -> loc2 : Obtiene ubicación
+    loc2 -> report2 : Coordenadas actuales
+    
+    user2 -> report2 : Completa formulario
+    report2 -> upload2 : Sube imagen
+    upload2 -> report2 : URL de imagen
+    
+    report2 -> mongo2 : POST /reports
+    mongo2 -> report2 : Reporte creado
+    report2 -> user2 : Confirmación éxito
+    
+    note right of mongo2 : "Documento MongoDB:\n{\n  title, description,\n  location: GeoJSON,\n  images: [urls],\n  user: ObjectId,\n  type, severity, status\n}"
+}
+
+package "Caso de Uso 3: Autenticación JWT" {
+    
+    actor Usuario as user3
+    participant "LoginScreen" as login3
+    participant "Auth Service" as auth3
+    participant "AsyncStorage" as storage3
+    participant "JWT Middleware" as jwt3
+    participant "MongoDB Users" as users3
+    
+    user3 -> login3 : Ingresa credenciales
+    login3 -> auth3 : POST /auth/login
+    auth3 -> users3 : Valida usuario
+    users3 -> auth3 : Usuario válido
+    
+    auth3 -> jwt3 : Genera JWT token
+    jwt3 -> auth3 : Token firmado
+    auth3 -> login3 : Token + datos usuario
+    
+    login3 -> storage3 : Guarda token localmente
+    storage3 -> login3 : Token guardado
+    login3 -> user3 : Redirige a app principal
+    
+    note right of jwt3 : "JWT Payload:\n{\n  id: user._id,\n  email: user.email,\n  role: user.role,\n  iat: timestamp,\n  exp: timestamp + 30d\n}"
+    
+    alt Solicitudes posteriores
+        user3 -> login3 : Usa la app
+        login3 -> storage3 : Obtiene token
+        storage3 -> login3 : Token actual
+        login3 -> auth3 : Request con Authorization header
+        auth3 -> jwt3 : Valida token
+        jwt3 -> auth3 : Token válido
+        auth3 -> login3 : Respuesta autorizada
+    end
+}
+
+package "Caso de Uso 4: Administración de Puntos (Admin)" {
+    
+    actor Admin as admin4
+    participant "Adminer" as adminer4
+    participant "PostgreSQL" as pg4
+    participant "Backend API" as backend4
+    participant "Redis Cache" as redis4
+    
+    admin4 -> adminer4 : Accede a localhost:8080
+    adminer4 -> pg4 : Conexión PostgreSQL
+    
+    admin4 -> adminer4 : Modifica collection_points
+    adminer4 -> pg4 : UPDATE/INSERT/DELETE
+    pg4 -> adminer4 : Cambios aplicados
+    
+    alt Invalidación de caché
+        backend4 -> redis4 : Detecta cambios en DB
+        redis4 -> backend4 : Invalida caché relacionado
+    end
+    
+    note right of pg4 : "Cambios directos en BD:\n- Nuevos puntos de recolección\n- Actualización de capacidades\n- Cambio de horarios\n- Activación/desactivación"
+    
+    note right of redis4 : "Cache invalidation:\n- all_collection_points\n- nearby_points_*\n- Fuerza refresh en próxima consulta"
+}
+
+package "Caso de Uso 5: Estadísticas del Sistema" {
+    
+    actor Admin as admin5
+    participant "Stats API" as stats5
+    participant "MongoDB Aggregation" as agg5
+    participant "PostgreSQL Analytics" as analytics5
+    participant "Dashboard" as dash5
+    
+    admin5 -> stats5 : GET /stats/overview
+    
+    par Estadísticas paralelas
+        stats5 -> agg5 : Cuenta usuarios activos
+        and
+        stats5 -> agg5 : Agrupa reportes por estado
+        and
+        stats5 -> analytics5 : Cuenta puntos activos
+    end
+    
+    agg5 -> stats5 : Datos de usuarios y reportes
+    analytics5 -> stats5 : Datos de puntos de recolección
+    
+    stats5 -> dash5 : JSON consolidado
+    dash5 -> admin5 : Dashboard con métricas
+    
+    note right of agg5 : "MongoDB Aggregation:\n[\n  { $match: { isActive: true } },\n  { $group: { _id: '$status', count: { $sum: 1 } } },\n  { $sort: { count: -1 } }\n]"
+    
+    note right of analytics5 : "PostgreSQL Query:\nSELECT \n  COUNT(*) as total,\n  COUNT(CASE WHEN is_active = true THEN 1 END) as active,\n  AVG(current_fill::float/capacity*100) as avg_fill\nFROM collection_points"
+}
+
+@enduml

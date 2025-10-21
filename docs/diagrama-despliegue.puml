@@ -1,0 +1,179 @@
+@startuml Despliegue y Infraestructura
+
+
+title Diagrama de Despliegue - Sistema Latacunga Clean
+
+!define DOCKER_COLOR #2496ED
+!define SERVER_COLOR #FF6B35
+!define CLIENT_COLOR #4CAF50
+!define NETWORK_COLOR #9C27B0
+
+node "Servidor de Desarrollo" <<Device>> {
+    
+    package "Docker Environment" DOCKER_COLOR {
+        
+        node "Container: latacunga-postgis" {
+            artifact "PostgreSQL 14" as pg_app
+            artifact "PostGIS 3.3" as postgis_ext
+            database "latacunga_clean DB" as pg_db
+            
+            pg_app --> postgis_ext : "extensión"
+            pg_app --> pg_db : "gestiona"
+            
+            note bottom : "Puerto: 5432\nVolumen: postgres_data\nHealth Check: pg_isready"
+        }
+        
+        node "Container: latacunga-mongodb" {
+            artifact "MongoDB 7.0" as mongo_app
+            database "Users & Reports" as mongo_db
+            
+            mongo_app --> mongo_db : "gestiona"
+            
+            note bottom : "Puerto: 27017\nVolumen: mongodb_data\nAuth: admin/latacunga2024"
+        }
+        
+        node "Container: latacunga-redis" {
+            artifact "Redis 7 Alpine" as redis_app
+            database "Cache & Sessions" as redis_db
+            
+            redis_app --> redis_db : "gestiona"
+            
+            note bottom : "Puerto: 6379\nVolumen: redis_data\nPassword: latacunga2024"
+        }
+        
+        node "Container: adminer" {
+            artifact "Adminer UI" as adminer_app
+            
+            note bottom : "Puerto: 8080\nPostgreSQL Admin"
+        }
+        
+        node "Container: mongo-express" {
+            artifact "Mongo Express UI" as mongoexpress_app
+            
+            note bottom : "Puerto: 8081\nMongoDB Admin"
+        }
+        
+        node "Container: backend (opcional)" {
+            artifact "Node.js API" as backend_app
+            file "Express Server" as express_server
+            
+            backend_app --> express_server : "ejecuta"
+            
+            note bottom : "Puerto: 3000\nHealth Check: /api/health"
+        }
+    }
+    
+    package "Host System" SERVER_COLOR {
+        node "Node.js Runtime" {
+            artifact "Backend API" as host_backend
+            file "Package.json" as pkg_json
+            folder "node_modules" as node_mods
+            
+            host_backend --> pkg_json : "configuración"
+            host_backend --> node_mods : "dependencias"
+        }
+        
+        folder "Project Files" {
+            file "docker-compose.yml" as compose_file
+            file "Dockerfile" as dockerfile
+            folder "backend/" as backend_folder
+            folder "src/" as frontend_folder
+        }
+    }
+    
+    package "Network Configuration" NETWORK_COLOR {
+        cloud "latacunga-network" as docker_network {
+            interface "Bridge Network" as bridge
+            
+            note bottom : "Red interna Docker\nComunicación entre contenedores\nAislamiento de servicios"
+        }
+    }
+}
+
+node "Dispositivo Desarrollador" <<Device>> CLIENT_COLOR {
+    
+    package "Development Tools" {
+        artifact "Expo CLI" as expo_cli
+        artifact "VS Code" as vscode
+        artifact "Git" as git_client
+        artifact "Docker Desktop" as docker_desktop
+    }
+    
+    package "React Native App" {
+        artifact "Expo Dev Client" as expo_app
+        component "JavaScript Bundle" as js_bundle
+        
+        expo_app --> js_bundle : "ejecuta"
+    }
+    
+    package "Web Browsers" {
+        artifact "Chrome/Firefox" as browser
+        
+        note bottom : "Acceso a interfaces admin:\nlocalhost:8080 (Adminer)\nlocalhost:8081 (Mongo Express)"
+    }
+}
+
+node "Dispositivo Móvil" <<Device>> CLIENT_COLOR {
+    
+    package "Expo Go App" {
+        artifact "Expo Go" as expo_go
+        component "React Native Bundle" as rn_bundle
+        
+        expo_go --> rn_bundle : "ejecuta"
+        
+        note bottom : "iOS/Android\nEscanea QR code\nHot reloading"
+    }
+    
+    package "Servicios Móviles" {
+        component "GPS" as mobile_gps
+        component "Cámara" as mobile_camera
+        component "Almacenamiento" as mobile_storage
+    }
+}
+
+' Conexiones de red
+docker_network --> pg_app : "5432"
+docker_network --> mongo_app : "27017"
+docker_network --> redis_app : "6379"
+docker_network --> adminer_app : "8080"
+docker_network --> mongoexpress_app : "8081"
+docker_network --> backend_app : "3000"
+
+' Conexiones externas
+browser --> adminer_app : "HTTP :8080"
+browser --> mongoexpress_app : "HTTP :8081"
+expo_cli --> host_backend : "HTTP :3000"
+expo_go --> host_backend : "HTTP :3000"
+
+' Conexiones de datos
+adminer_app --> pg_app : "administra"
+mongoexpress_app --> mongo_app : "administra"
+backend_app --> pg_app : "consulta"
+backend_app --> mongo_app : "CRUD"
+backend_app --> redis_app : "caché"
+
+' Desarrollo
+vscode --> compose_file : "edita"
+docker_desktop --> docker_network : "gestiona"
+git_client --> backend_folder : "version control"
+expo_cli --> expo_go : "deploy"
+
+' Volúmenes persistentes
+package "Persistent Storage" {
+    storage "postgres_data" as pg_vol
+    storage "mongodb_data" as mongo_vol
+    storage "redis_data" as redis_vol
+}
+
+pg_app --> pg_vol : "monta"
+mongo_app --> mongo_vol : "monta"
+redis_app --> redis_vol : "monta"
+
+' Comandos de despliegue
+note top of docker_network : "Comandos principales:\ndocker-compose up -d\ndocker-compose logs -f\ndocker-compose down\ndocker-compose ps"
+
+note top of expo_cli : "Comandos desarrollo:\nnpx expo start\nnpx expo start --web\nnpx expo run:android\nnpx expo run:ios"
+
+note top of host_backend : "Desarrollo backend:\ncd backend\nnpm run dev\nnpm run seed\nnpm test"
+
+@enduml

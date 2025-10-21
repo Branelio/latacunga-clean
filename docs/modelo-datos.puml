@@ -1,0 +1,182 @@
+@startuml Base de Datos - Esquema y Relaciones
+!theme aws-orange
+
+title Modelo de Datos - Sistema Latacunga Clean
+
+!define POSTGRES_COLOR #336791
+!define MONGODB_COLOR #4DB33D
+!define REDIS_COLOR #DC382D
+
+package "PostgreSQL + PostGIS" POSTGRES_COLOR {
+    
+    entity "collection_points" {
+        + id : SERIAL <<PK>>
+        --
+        name : VARCHAR(255)
+        description : TEXT
+        address : VARCHAR(500)
+        type : VARCHAR(50)
+        capacity : INTEGER
+        current_fill : INTEGER
+        waste_types : JSONB
+        location : GEOMETRY(POINT, 4326)
+        latitude : DECIMAL(10,8)
+        longitude : DECIMAL(11,8)
+        operating_hours : JSONB
+        contact_phone : VARCHAR(20)
+        contact_email : VARCHAR(100)
+        is_active : BOOLEAN
+        image_url : VARCHAR(500)
+        created_at : TIMESTAMP
+        updated_at : TIMESTAMP
+    }
+    
+    note bottom of collection_points : "10 puntos reales de Latacunga\nPostGIS para consultas espaciales\nST_Distance() para proximidad\nÍndices espaciales para optimización"
+    
+    rectangle "Consultas Geoespaciales" as geo_queries {
+        + ST_Distance(location, point)
+        + ST_DWithin(location, point, radius)
+        + ST_Buffer(location, radius)
+        + ST_Contains(polygon, point)
+    }
+    
+    collection_points ||--|| geo_queries : "utiliza"
+}
+
+package "MongoDB" MONGODB_COLOR {
+    
+    entity "users" {
+        + _id : ObjectId <<PK>>
+        --
+        name : String
+        email : String <<unique>>
+        password : String <<hashed>>
+        phone : String
+        role : String <<enum>>
+        points : Number
+        level : Number
+        avatar : String
+        address : Object
+        stats : Object
+        preferences : Object
+        isActive : Boolean
+        lastLoginAt : Date
+        createdAt : Date
+        updatedAt : Date
+    }
+    
+    entity "reports" {
+        + _id : ObjectId <<PK>>
+        --
+        title : String
+        description : String
+        location : GeoJSON
+        images : [String]
+        type : String <<enum>>
+        severity : String <<enum>>
+        status : String <<enum>>
+        user : ObjectId <<FK>>
+        assignedTo : ObjectId <<FK>>
+        collectionPoint : Number <<FK>>
+        tags : [String]
+        comments : [CommentSchema]
+        votes : Object
+        verification : Object
+        resolution : Object
+        metadata : Object
+        createdAt : Date
+        updatedAt : Date
+    }
+    
+    entity "CommentSchema" {
+        + user : ObjectId <<FK>>
+        + content : String
+        + createdAt : Date
+        + isEdited : Boolean
+        + editedAt : Date
+    }
+    
+    users ||--o{ reports : "crea"
+    users ||--o{ CommentSchema : "escribe"
+    reports ||--o{ CommentSchema : "contiene"
+    
+    note top of users : "Sistema de gamificación:\n- Puntos por reportes\n- Niveles de usuario\n- Estadísticas personales\n- Preferencias de notificación"
+    
+    note top of reports : "Reportes georeferenciados:\n- Ubicación GeoJSON\n- Múltiples imágenes\n- Sistema de comentarios\n- Workflow de verificación"
+}
+
+package "Redis Cache" REDIS_COLOR {
+    
+    rectangle "Caché de Consultas" as query_cache {
+        + all_collection_points
+        + nearby_points_<lat>_<lng>
+        + user_stats_<user_id>
+        + leaderboard_top_10
+    }
+    
+    rectangle "Sesiones y Tokens" as sessions {
+        + jwt_token_<user_id>
+        + session_<session_id>
+        + rate_limit_<ip_address>
+    }
+    
+    rectangle "Datos Temporales" as temp_data {
+        + upload_progress_<upload_id>
+        + notification_queue
+        + geofence_alerts
+    }
+    
+    note bottom of query_cache : "TTL: 15 minutos\nInvalidación automática\nMejora performance API"
+    
+    note bottom of sessions : "JWT token storage\nSesiones activas\nRate limiting por IP"
+}
+
+package "Relaciones Cross-Database" {
+    reports }|--|| collection_points : "referencia por ID"
+    
+    note bottom : "reports.collectionPoint → collection_points.id\nRelación lógica entre MongoDB y PostgreSQL\nConsultas coordinadas en controladores"
+}
+
+package "Índices y Optimización" {
+    rectangle "PostgreSQL Índices" as pg_indexes {
+        + INDEX location USING GIST
+        + INDEX type, is_active
+        + INDEX created_at DESC
+    }
+    
+    rectangle "MongoDB Índices" as mongo_indexes {
+        + INDEX email (unique)
+        + INDEX user, createdAt
+        + INDEX location (2dsphere)
+        + INDEX status, type
+    }
+    
+    collection_points ||--|| pg_indexes
+    users ||--|| mongo_indexes
+    reports ||--|| mongo_indexes
+}
+
+package "Tipos de Datos Específicos" {
+    rectangle "Enumeraciones" as enums {
+        + user.role: ['user', 'admin', 'moderator']
+        + report.type: ['residuo', 'contenedor', 'limpieza']
+        + report.severity: ['baja', 'media', 'alta', 'critica']
+        + report.status: ['pendiente', 'en_proceso', 'resuelto']
+        + collection_point.type: ['contenedor', 'centro', 'punto_verde']
+    }
+    
+    rectangle "Estructuras JSONB/Object" as structures {
+        + operating_hours: {"Lunes-Viernes": "08:30-16:30"}
+        + waste_types: ["organico", "plastico", "papel", "vidrio"]
+        + user.stats: {reports: 0, points: 0, level: 1}
+        + user.preferences: {notifications: true, theme: "light"}
+    }
+}
+
+users ||--|| enums
+reports ||--|| enums
+collection_points ||--|| enums
+collection_points ||--|| structures
+users ||--|| structures
+
+@enduml
