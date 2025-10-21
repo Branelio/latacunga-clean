@@ -15,12 +15,12 @@ const connectPostgres = async () => {
   try {
     const client = await pool.connect();
     
-    // Verificar que PostGIS está instalado
+    // Crear extensión PostGIS si no existe (PRIMERO)
+    await client.query('CREATE EXTENSION IF NOT EXISTS postgis');
+    
+    // Verificar que PostGIS está instalado (DESPUÉS)
     const result = await client.query('SELECT PostGIS_Version()');
     console.log(`✅ PostgreSQL/PostGIS conectado: ${result.rows[0].postgis_version}`);
-    
-    // Crear extensión PostGIS si no existe
-    await client.query('CREATE EXTENSION IF NOT EXISTS postgis');
     
     // Eliminar tabla antigua si existe (para recrear con estructura correcta)
     await client.query(`DROP TABLE IF EXISTS collection_points CASCADE`);
