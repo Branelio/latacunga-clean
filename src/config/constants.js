@@ -3,7 +3,7 @@
 // URL del API - Cambiar según entorno
 export const API_URL = __DEV__ 
   ? 'http://192.168.0.147:3000/api' // Tu IP local
-  : 'https://api.latacunga-clean.com/api';
+  : 'https://thriving-patience-production.up.railway.app/api';
 
 // Log de configuración
 console.log('⚙️ Configuración de API:', {
