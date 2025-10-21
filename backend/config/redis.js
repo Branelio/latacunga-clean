@@ -4,13 +4,19 @@ let redisClient = null;
 
 const connectRedis = async () => {
   try {
-    redisClient = redis.createClient({
-      socket: {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
-      },
-      password: process.env.REDIS_PASSWORD,
-    });
+    // Si REDIS_URL existe (Railway/producción), usarlo directamente
+    // Si no, usar variables individuales (desarrollo local)
+    const redisConfig = process.env.REDIS_URL 
+      ? { url: process.env.REDIS_URL }
+      : {
+          socket: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: process.env.REDIS_PORT || 6379,
+          },
+          password: process.env.REDIS_PASSWORD,
+        };
+
+    redisClient = redis.createClient(redisConfig);
 
     redisClient.on('error', (err) => {
       console.error('❌ Error de Redis:', err);
