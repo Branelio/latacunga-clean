@@ -4,10 +4,10 @@
     "slug": "latacunga-clean",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./src/assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#2E7D32"
     },
@@ -22,14 +22,11 @@
         "NSLocationAlwaysUsageDescription": "Latacunga Clean necesita tu ubicación para registrar reportes.",
         "NSCameraUsageDescription": "Necesitamos acceso a tu cámara para tomar fotos de reportes.",
         "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tus fotos para adjuntar imágenes a reportes."
-      },
-      "config": {
-        "googleMapsApiKey": "pk.eyJ1IjoiYmpzYW5nb2x1aXNhIiwiYSI6ImNtZ2R5ZnJrcjE3Y3oyaXBrbTd3enpoYW4ifQ.lLhsDku7duNx3lCexMcgbQ"
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#2E7D32"
       },
       "package": "com.latacunga.clean",
@@ -38,16 +35,14 @@
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "pk.eyJ1IjoiYmpzYW5nb2x1aXNhIiwiYSI6ImNtZ2R5ZnJrcjE3Y3oyaXBrbTd3enpoYW4ifQ.lLhsDku7duNx3lCexMcgbQ"
-        }
-      }
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./src/assets/favicon.png"
     },
     "plugins": [
       [
@@ -56,6 +51,11 @@
           "locationAlwaysAndWhenInUsePermission": "Latacunga Clean necesita tu ubicación para mostrarte puntos de reciclaje cercanos."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b1d1f1c8-2e53-464f-9a24-f0a6c3920765"
+      }
+    }
   }
 }

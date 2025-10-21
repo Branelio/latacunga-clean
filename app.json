@@ -36,7 +36,9 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "INTERNET"
+        "INTERNET",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -49,6 +51,11 @@
           "locationAlwaysAndWhenInUsePermission": "Latacunga Clean necesita tu ubicación para mostrarte puntos de reciclaje cercanos."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b1d1f1c8-2e53-464f-9a24-f0a6c3920765"
+      }
+    }
   }
 }
