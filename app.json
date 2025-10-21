@@ -22,9 +22,6 @@
         "NSLocationAlwaysUsageDescription": "Latacunga Clean necesita tu ubicación para registrar reportes.",
         "NSCameraUsageDescription": "Necesitamos acceso a tu cámara para tomar fotos de reportes.",
         "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tus fotos para adjuntar imágenes a reportes."
-      },
-      "config": {
-        "googleMapsApiKey": "pk.eyJ1IjoiYmpzYW5nb2x1aXNhIiwiYSI6ImNtZ2R5ZnJrcjE3Y3oyaXBrbTd3enpoYW4ifQ.lLhsDku7duNx3lCexMcgbQ"
       }
     },
     "android": {
@@ -38,13 +35,9 @@
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "pk.eyJ1IjoiYmpzYW5nb2x1aXNhIiwiYSI6ImNtZ2R5ZnJrcjE3Y3oyaXBrbTd3enpoYW4ifQ.lLhsDku7duNx3lCexMcgbQ"
-        }
-      }
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET"
+      ]
     },
     "web": {
       "favicon": "./src/assets/favicon.png"
